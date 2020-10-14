@@ -2,6 +2,7 @@
 class Skiplist {
     // 最多16层
     int MAX_LEVEL = 16;
+    // 当前SkipList有多少层
     int currLevel;
     Node head;
 
@@ -42,15 +43,15 @@ class Skiplist {
         }
         Node node = new Node(num);
         // 每一层都有next_point，一共level个
-        node.next_point = new Node[level];
-        Node[] forward = new Node[level];
+        node.next_point = new Node[currLevel];
+        Node[] forward = new Node[currLevel];
         
         Arrays.fill(forward, head);
         Node temp = head;
         
         // 找到新插入元素num的前驱节点
         // 从第 level 层开始往第 1 层找
-        for (int i = level -1; i >= 0; i--) {
+        for (int i = currLevel -1; i >= 0; i--) {
             // next_point[i] 第i层的下一个节点
             while ( temp.next_point[i] != null && temp.next_point[i].val < num) {
                 // 一直右移，直到next_point的值比当前值大（模拟右移的过程）
@@ -60,7 +61,7 @@ class Skiplist {
             forward[i] = temp;
         }
         // 更新连接
-        for (int i = 0; i < level; i++) {
+        for (int i = 0; i < currLevel; i++) {
             // 更新新插入节点的下一个节点，在链表中forward[i] 和 forward[i].next两个节点间插入node节点
             node.next_point[i] = forward[i].next_point[i];
             forward[i].next_point[i] = node;

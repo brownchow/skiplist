@@ -66,6 +66,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
+// 有问题
 func TestDeleteBig(t *testing.T) {
 	sl := NewSkipList()
 	var i uint32

@@ -19,15 +19,15 @@ import (
 /**
  */
 type SkipNode struct {
-	Key     uint32
-	Val     interface{}
-	Forward []*SkipNode // 当前节点的下一个节点(每一层的下一节点)，例如30的forward就是 40, 50, 50, nil
-	Level   int         // 所在层数
+	Key     uint32      //插入一个值的key
+	Val     interface{} // 插入一个值的val
+	Forward []*SkipNode // 当前节点的下一个节点(每一层的下一节点Forward[0]是第一层的下一个节点，Forward[1]是第二层的下一个节点)
+	Level   int         // 当前node有多少个子节点，java里面直接写成 node[] nextPoint，咱这边用两个成员变量表示
 }
 
-// NewNode 创建新节点 searchKey: key, value: val, createLevel: 当前节点所有在level, maxLevel: 整个skipList的最大深度
+// NewNode 创建新节点 searchKey: key, value: val, createLevel: 当前节点所有在level, maxLevel: 整个skipList的最大深度，或者说这个node有几个子节点
 func NewNode(searchKey uint32, value interface{}, createLevel int, maxLevel int) *SkipNode {
-	// every forward prepare a maxLevel empty point first
+	//Every forward prepare a maxLevel empty point first.
 	forwardEmpty := make([]*SkipNode, maxLevel)
 	for i := 0; i <= maxLevel-1; i++ {
 		forwardEmpty[i] = nil
@@ -39,7 +39,7 @@ type SkipList struct {
 	Header      *SkipNode
 	MaxLevel    int // 最大深度
 	Propobility float32
-	Level       int // 当前跳表的所有层数
+	Level       int // 当前SkipList的层数
 }
 
 const (
@@ -98,21 +98,22 @@ func (sl *SkipList) Search(searchKey uint32) (interface{}, error) {
 	return nil, errors.New("Not Found.")
 }
 
+// 思路：先找到要插入节点的前驱节点，然后就是链表操作，其中i表示层数
+// forward[i]  --> forward[i].Forward[i]
+// forward[i]  --> nodeToInsert --> forward[i].Forward[i]
 // Insert: Insert a search key and its value which can by interface{}
 func (sl *SkipList) Insert(searchKey uint32, value interface{}) {
-	// level := sl.RandomLevel()
-	// if level > sl.Level {
-	// 	sl.Level = level
-	// }
-	updateList := make([]*SkipNode, sl.MaxLevel)
+	forward := make([]*SkipNode, sl.MaxLevel)
 	currentNode := sl.Header
 
 	// QuickSearch in forward list
 	for i := sl.Header.Level - 1; i >= 0; i-- {
 		for currentNode.Forward[i] != nil && currentNode.Forward[i].Key < searchKey {
+			// 指针右移
 			currentNode = currentNode.Forward[i]
 		}
-		updateList[i] = currentNode
+		// 第i层待插入节点的前驱节点找到啦，更新下
+		forward[i] = currentNode
 	}
 
 	//Step to next node. (which is the target insert location)
@@ -124,16 +125,17 @@ func (sl *SkipList) Insert(searchKey uint32, value interface{}) {
 		newLevel := sl.RandomLevel()
 		if newLevel > sl.Level {
 			for i := sl.Level + 1; i <= newLevel; i++ {
-				updateList[i-1] = sl.Header
+				forward[i-1] = sl.Header
 			}
 			sl.Level = newLevel //This is not mention in cookbook pseudo code
 			sl.Header.Level = newLevel
 		}
 
 		newNode := NewNode(searchKey, value, newLevel, sl.MaxLevel) //New node
-		for i := 0; i <= newLevel-1; i++ {                          //zero base
-			newNode.Forward[i] = updateList[i].Forward[i]
-			updateList[i].Forward[i] = newNode
+		// 为啥这边是 newLevel? 而不是 sl.Level，难道有些不需要更新？
+		for i := 0; i <= newLevel-1; i++ { //zero base
+			newNode.Forward[i] = forward[i].Forward[i]
+			forward[i].Forward[i] = newNode
 		}
 	}
 }
