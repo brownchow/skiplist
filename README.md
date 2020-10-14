@@ -61,3 +61,15 @@ https://leetcode-cn.com/problems/design-skiplist/
 4、https://www.youtube.com/watch?v=ypod5jeYzAU
 
 5、数据量一大，测试脚本就挂了？这个不知道啥原因
+
+
+
+https://www.youtube.com/watch?v=Q9MdwzewSZg
+
+这是我学过的最 wired 数据结构
+
+
+
+https://www.youtube.com/watch?v=fOHJbfwNd40
+
+这个视频解释了，SkipList是一个基于概率的随机访问的链表
